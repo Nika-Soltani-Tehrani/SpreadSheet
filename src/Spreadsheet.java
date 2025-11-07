@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Spreadsheet {
@@ -51,6 +53,41 @@ public class Spreadsheet {
         // use FormulaParser later
         return 0.0;
     }
+
+    public List<Coordinate> getRange(Coordinate start, Coordinate end) {
+        List<Coordinate> coords = new ArrayList<>();
+        int startCol = toIndex(start.getColumn());
+        int endCol = toIndex(end.getColumn());
+        int startRow = start.getRow();
+        int endRow = end.getRow();
+
+        for (int c = startCol; c <= endCol; c++) {
+            for (int r = startRow; r <= endRow; r++) {
+                coords.add(new Coordinate(fromIndex(c), r));
+            }
+        }
+        return coords;
+    }
+
+    // Example conversion methods
+    private int toIndex(String col) {
+        int result = 0;
+        for (char ch : col.toCharArray()) {
+            result = result * 26 + (ch - 'A' + 1);
+        }
+        return result;
+    }
+
+    private String fromIndex(int index) {
+        StringBuilder sb = new StringBuilder();
+        while (index > 0) {
+            index--;
+            sb.insert(0, (char) ('A' + (index % 26)));
+            index /= 26;
+        }
+        return sb.toString();
+    }
+
 
 
 }

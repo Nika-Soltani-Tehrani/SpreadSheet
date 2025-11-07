@@ -2,25 +2,22 @@ public class Main {
     public static void main(String[] args) {
         Spreadsheet sheet = new Spreadsheet();
 
-        // 1️⃣ Test numeric content
-        sheet.setCellContent("A1", "123.5");
-        System.out.println("A1 value: " + sheet.getCellValue("A1"));
+        // Fill some cells
+        sheet.setCellContent("A1", "1");
+        sheet.setCellContent("A2", "2");
+        sheet.setCellContent("A3", "3");
+        sheet.setCellContent("B1", "4");
 
-        // 2️⃣ Test text content (numeric string → should return 1.0)
-        sheet.setCellContent("A2", "1");
-        System.out.println("A2 value: " + sheet.getCellValue("A2"));
+        // Test simple formula
+        sheet.setCellContent("C1", "=A1 + B1 * 2");
+        System.out.println("C1 = " + sheet.getCellValue("C1")); // expected 1 + 4*2 = 9
 
-        // 3️⃣ Test text content (non-numeric)
-        sheet.setCellContent("B1", "TOTAL");
-        try {
-            System.out.println("B1 value: " + sheet.getCellValue("B1"));
-        } catch (IllegalArgumentException e) {
-            System.out.println("Expected error for B1: " + e.getMessage());
-        }
+        // Test SUMA function
+        sheet.setCellContent("C2", "=SUMA(A1:A3)");
+        System.out.println("C2 = " + sheet.getCellValue("C2")); // expected 6
 
-        // 4️⃣ Test formula content (dummy formula for now)
-        sheet.setCellContent("C1", "=A1+A2");
-        System.out.println("C1 formula as text: " + sheet.getCellAsString("C1"));
-        System.out.println("C1 computed value (placeholder): " + sheet.getCellValue("C1"));
+        // Test combined
+        sheet.setCellContent("C3", "=SUMA(A1:A3) + B1");
+        System.out.println("C3 = " + sheet.getCellValue("C3")); // expected 6 + 4 = 10
     }
 }
