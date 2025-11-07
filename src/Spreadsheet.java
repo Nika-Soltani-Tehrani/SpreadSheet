@@ -10,6 +10,14 @@ public class Spreadsheet {
         spreadsheet = new HashMap<>();
     }
 
+    public Map<Coordinate, Cell> loadSpreadsheetFromFile(){
+        return spreadsheet;
+    }
+
+    public void storeSpreadsheetInFile(){
+
+    }
+
     public void setCellContent(String coordStr, String rawContent) {
         Coordinate coord = Coordinate.fromString(coordStr);
         CellContent content;
@@ -22,6 +30,10 @@ public class Spreadsheet {
             content = new TextContent(rawContent);
 
         spreadsheet.put(coord, new Cell(coord, content));
+    }
+
+    public void getCellContent() {
+
     }
 
     private boolean isNumeric(String s) {
@@ -41,53 +53,8 @@ public class Spreadsheet {
         return cell.getValue(this);
     }
 
-    public String getCellAsString(String coordStr) {
-        Coordinate coord = Coordinate.fromString(coordStr);
-        Cell cell = spreadsheet.get(coord);
-        if (cell == null) throw new IllegalArgumentException("Cell not found: " + coordStr);
-        return cell.getContent().asString();
+    public void setCellValue(String coordStr) {
+
     }
-
-    // to be implemented later
-    public double evaluateFormula(String formula) {
-        // use FormulaParser later
-        return 0.0;
-    }
-
-    public List<Coordinate> getRange(Coordinate start, Coordinate end) {
-        List<Coordinate> coords = new ArrayList<>();
-        int startCol = toIndex(start.getColumn());
-        int endCol = toIndex(end.getColumn());
-        int startRow = start.getRow();
-        int endRow = end.getRow();
-
-        for (int c = startCol; c <= endCol; c++) {
-            for (int r = startRow; r <= endRow; r++) {
-                coords.add(new Coordinate(fromIndex(c), r));
-            }
-        }
-        return coords;
-    }
-
-    // Example conversion methods
-    private int toIndex(String col) {
-        int result = 0;
-        for (char ch : col.toCharArray()) {
-            result = result * 26 + (ch - 'A' + 1);
-        }
-        return result;
-    }
-
-    private String fromIndex(int index) {
-        StringBuilder sb = new StringBuilder();
-        while (index > 0) {
-            index--;
-            sb.insert(0, (char) ('A' + (index % 26)));
-            index /= 26;
-        }
-        return sb.toString();
-    }
-
-
 
 }

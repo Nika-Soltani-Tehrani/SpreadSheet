@@ -7,6 +7,9 @@ public class Coordinate {
         this.row = row;
     }
 
+    /*
+     This function retrieves column and row from a string identifier
+     */
     public static Coordinate fromString(String s) {
         if (s == null) {
             throw new IllegalArgumentException("Coordinate string cannot be null");

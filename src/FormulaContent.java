@@ -8,7 +8,7 @@ public class FormulaContent extends CellContent {
     @Override
     public Double getValue(Spreadsheet spreadsheet) {
         FormulaHandler formula = new FormulaHandler(formulaText);
-        return formula.evaluate(spreadsheet);
+        return formula.getFormulaValue(spreadsheet);
     }
 
     @Override

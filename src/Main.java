@@ -10,7 +10,7 @@ public class Main {
 
         // Test simple formula
         sheet.setCellContent("C1", "=A1 + B1 * 2");
-        System.out.println("C1 = " + sheet.getCellValue("C1")); // expected 1 + 4*2 = 9
+        System.out.println("A1 = " + sheet.getCellValue("A1")); // expected 1 + 4*2 = 9
 
         // Test SUMA function
         sheet.setCellContent("C2", "=SUMA(A1:A3)");
