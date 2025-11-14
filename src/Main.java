@@ -2,29 +2,29 @@ import java.util.Map;
 
 public class Main {
 
-    public static void printSpreadsheetWithValues(Spreadsheet spreadsheet) {
-        for (Map.Entry<Coordinate, Cell> entry : spreadsheet.getSpreadsheet().entrySet()) {
-            Coordinate coord = entry.getKey();
-            Cell cell = entry.getValue();
-            System.out.println(coord + " = " + cell.getContent().asString());
+    public static void printSpreadsheet(Spreadsheet sheet) {
+        for (Map.Entry<Coordinate, Cell> entry : sheet.getSpreadsheet().entrySet()) {
+            System.out.println(entry.getKey() + " → " + entry.getValue().getContent().asString());
         }
     }
 
-
     public static void main(String[] args) {
-        Spreadsheet sheet = new Spreadsheet();
-        sheet.loadSpreadsheetFromFile("spreadsheet.s2v");
-        printSpreadsheetWithValues(sheet);
-//
+
+        SpreadsheetStorage storage = new SpreadsheetStorage();
+
+        // Load
+        Spreadsheet sheet = storage.load("spreadsheet.s2v");
+        System.out.println("\n=== Loaded Spreadsheet ===");
+        printSpreadsheet(sheet);
+
+        // Modify
         sheet.setCellContent("A1", "=C1+B2");
         sheet.setCellContent("B1", "3");
-//        sheet.setCellContent("C1", "1");
-//        sheet.setCellContent("C2", "2");
-//        sheet.setCellContent("B3", "TOTAL");
-//        sheet.setCellContent("C3", "=A1+B1");
-//
-        sheet.storeSpreadsheetInFile("spreadsheet.s2v");
-        System.out.println("Spreadsheet after modification");
-        printSpreadsheetWithValues(sheet);
+
+        // Save
+        storage.save("spreadsheet.s2v", sheet);
+
+        System.out.println("\n=== After Modification ===");
+        printSpreadsheet(sheet);
     }
 }
