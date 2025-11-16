@@ -1,18 +1,20 @@
 public class FormulaContent extends CellContent {
-    private final String formulaText;
 
-    public FormulaContent(String formulaText) {
-        this.formulaText = formulaText;
+    private final String rawFormula;
+    private final Expression expression;
+
+    public FormulaContent(String rawFormula) {
+        this.rawFormula = rawFormula;
+        this.expression = new FormulaParser().parse(rawFormula);
     }
 
     @Override
-    public Double getValue(Spreadsheet spreadsheet) {
-        FormulaHandler formula = new FormulaHandler(formulaText);
-        return formula.getFormulaValue(spreadsheet);
+    public Double getValue(Spreadsheet sheet) {
+        return expression.getValue(sheet);
     }
 
     @Override
     public String asString() {
-        return formulaText;
+        return rawFormula;
     }
 }

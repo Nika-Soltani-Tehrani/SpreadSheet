@@ -18,9 +18,9 @@ public class Main {
         printSpreadsheet(sheet);
 
         // Modify
-        sheet.setCellContent("A1", "=C1+B2");
+        sheet.setCellContent("A1", "=C1+B1");
         sheet.setCellContent("B1", "3");
-
+        System.out.println(sheet.getCellValue("A1"));
         // Save
         storage.save("spreadsheet.s2v", sheet);
 
