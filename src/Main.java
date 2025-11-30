@@ -18,11 +18,6 @@ public class Main {
         printSpreadsheet(sheet);
 
         // Modify
-<<<<<<< Updated upstream
-        sheet.setCellContent("A1", "=C1+B2");
-        sheet.setCellContent("B1", "3");
-
-=======
         sheet.setCellContent("C1", "1");
         sheet.setCellContent("A2", "2");
         sheet.setCellContent("A1", "=C1+B1*A2");
@@ -31,7 +26,7 @@ public class Main {
         sheet.setCellContent("C2", "=A1");
         System.out.println(sheet.getCellValue("A1"));
         System.out.println(sheet.getCellValue("C2"));
->>>>>>> Stashed changes
+      
         // Save
         storage.save("spreadsheet.s2v", sheet);
 
