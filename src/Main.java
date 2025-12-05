@@ -31,13 +31,19 @@ public class Main {
         /*
         Test Dependency management
          */
-        sheet.setCellContent("A1", "=B1 + B2+b3");
-        System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
+        //sheet.setCellContent("A1", "=B1 + B2+B3");
+        //System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
         sheet.setCellContent("B1", "1");
         sheet.setCellContent("B2", "3");
         sheet.setCellContent("B3", "5");
+
+        sheet.setCellContent("A1", "=B1 + B2+B3");
+        System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
+
         sheet.setCellContent("C1", "=A1 + 1");
-      
+        sheet.setCellContent("B2", "4");
+        sheet.setCellContent("C2", "=A1");
+        System.out.println("The value of C2 before assignment is: " + sheet.getCellValue("C2"));
         // Save
         storage.save("spreadsheet.s2v", sheet);
 

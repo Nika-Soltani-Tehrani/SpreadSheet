@@ -18,9 +18,11 @@ public class FormulaContent extends CellContent {
 
     @Override
     public Double getValue(Spreadsheet sheet) {
+        System.out.println("The status of validity of the cell content for formula " + rawFormula +  " before getting value is: " + isValid);
         if (!isValid) {
             cachedValue = expression.getValue(sheet);
             isValid = true;
+            System.out.println("The status of validity of the cell content for formula " + rawFormula +  " after getting value is: " + isValid);
         }
         return cachedValue;
     }
