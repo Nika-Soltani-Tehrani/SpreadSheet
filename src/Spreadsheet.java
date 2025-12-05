@@ -1,9 +1,12 @@
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Spreadsheet {
 
     private final Map<Coordinate, Cell> spreadsheet = new HashMap<>();
+    private Map<Coordinate, Set<Coordinate>> dependents = new HashMap<>();
 
     public Map<Coordinate, Cell> getSpreadsheet() {
         return spreadsheet;
@@ -22,7 +25,44 @@ public class Spreadsheet {
         }
 
         spreadsheet.put(coord, new Cell(coord, content));
+
+        updateDependencies(coord, content);
+        invalidate(coord);
     }
+
+    private void invalidate(Coordinate coord) {
+        invalidateRecursive(coord, new HashSet<>());
+    }
+
+    private void invalidateRecursive(Coordinate coord, Set<Coordinate> visited) {
+        Set<Coordinate> deps = dependents.get(coord);
+        if (deps == null) return;
+
+        for (Coordinate c : deps) {
+            Cell cell = spreadsheet.get(c);
+            if (cell != null && cell.getContent() instanceof FormulaContent) {
+                FormulaContent fc = (FormulaContent) cell.getContent();
+                fc.invalidate(); // mark isValid = false
+            }
+            invalidateRecursive(c, visited); // recursively invalidate
+        }
+    }
+
+    public void updateDependencies(Coordinate coord, CellContent content) {
+        // 1) Remove coord from all existing dependent sets (clear previous registration)
+        for (Set<Coordinate> deps : dependents.values()) {
+            deps.remove(coord);
+        }
+
+        // 2) If the new content is a formula, register coord as dependent of each dependency
+        if (content instanceof FormulaContent) {
+            FormulaContent fc = (FormulaContent) content;
+            for (Coordinate dep : fc.getDependencies()) {
+                dependents.computeIfAbsent(dep, k -> new HashSet<>()).add(coord);
+            }
+        }
+    }
+
 
     public void deleteCell(String coordStr) {
         Coordinate coord = Coordinate.fromString(coordStr);

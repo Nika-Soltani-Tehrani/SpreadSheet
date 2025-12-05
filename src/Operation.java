@@ -1,3 +1,6 @@
+import java.util.HashSet;
+import java.util.Set;
+
 // Composite class in composite design pattern
 public class Operation implements Expression {
 
@@ -30,4 +33,13 @@ public class Operation implements Expression {
         }
         throw new IllegalStateException("Unknown operator");
     }
+
+    @Override
+    public Set<Coordinate> getReferencedCells() {
+        Set<Coordinate> refs = new HashSet<>();
+        refs.addAll(left.getReferencedCells());
+        refs.addAll(right.getReferencedCells());
+        return refs;
+    }
+
 }
