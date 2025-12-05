@@ -16,7 +16,7 @@ public class Main {
         Spreadsheet sheet = storage.load("spreadsheet.s2v");
         System.out.println("\n=== Loaded Spreadsheet ===");
         printSpreadsheet(sheet);
-
+        /*
         // Modify
         sheet.setCellContent("C1", "1");
         sheet.setCellContent("A2", "2");
@@ -26,6 +26,17 @@ public class Main {
         sheet.setCellContent("C2", "=A1");
         System.out.println(sheet.getCellValue("A1"));
         System.out.println(sheet.getCellValue("C2"));
+        */
+
+        /*
+        Test Dependency management
+         */
+        sheet.setCellContent("A1", "=B1 + B2+b3");
+        System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
+        sheet.setCellContent("B1", "1");
+        sheet.setCellContent("B2", "3");
+        sheet.setCellContent("B3", "5");
+        sheet.setCellContent("C1", "=A1 + 1");
       
         // Save
         storage.save("spreadsheet.s2v", sheet);

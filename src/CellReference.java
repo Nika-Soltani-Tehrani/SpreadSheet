@@ -1,3 +1,5 @@
+import java.util.Set;
+
 // Leaf 2 in composite design pattern
 public class CellReference implements Expression {
     private final Coordinate coordinate;
@@ -10,4 +12,10 @@ public class CellReference implements Expression {
     public double getValue(Spreadsheet sheet) {
         return sheet.getCellValue(coordinate.toString());
     }
+
+    @Override
+    public Set<Coordinate> getReferencedCells() {
+        return Set.of(coordinate);
+    }
+
 }
