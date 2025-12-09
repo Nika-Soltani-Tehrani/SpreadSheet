@@ -54,6 +54,9 @@ public class Main {
         sheet.setCellContent("B1", "=C1 + 1");
         sheet.setCellContent("C1", "=A1 + 1"); // Now a cycle
         */
+        // Test ranges
+        sheet.setCellContent("D2", "=B1:B3");
+        System.out.println("The value of D2 is: " + sheet.getCellValue("D2"));
         // Save
         storage.save("spreadsheet.s2v", sheet);
 
