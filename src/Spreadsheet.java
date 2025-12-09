@@ -1,7 +1,4 @@
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Spreadsheet {
 
@@ -15,7 +12,6 @@ public class Spreadsheet {
     public void setCellContent(String coordStr, String rawContent) {
         Coordinate coord = Coordinate.fromString(coordStr);
         CellContent content;
-
         if (rawContent.startsWith("=")) {
             content = new FormulaContent(rawContent);
         } else if (isNumeric(rawContent)) {
@@ -24,10 +20,57 @@ public class Spreadsheet {
             content = new TextContent(rawContent);
         }
 
+        // Build a simulated dependents graph reflecting removal of old incoming edges to `coord`
+        Map<Coordinate, Set<Coordinate>> simulated = copyDependents();
+        // Remove coord from all sets in the simulated graph
+        for (Set<Coordinate> s : simulated.values()) {
+            s.remove(coord);
+        }
+        // Also remove empty keys optionally (not necessary for correctness)
+
+        // If new content is a formula, get its dependencies and check for cycles in simulated graph
+        if (content instanceof FormulaContent) {
+            FormulaContent fc = (FormulaContent) content;
+            Set<Coordinate> newDeps = fc.getDependencies();
+
+            for (Coordinate dep : newDeps) {
+                // If coord can already reach dep in simulated graph, adding dep->coord closes a cycle
+                boolean creates = pathExists(simulated, coord, dep);
+
+                System.out.println("checking cycle for " + coord + " depending on " + dep + " => " + creates);
+                if (creates) {
+                    throw new IllegalStateException("Cyclic dependency detected: " + coord + " <-> " + dep);
+                }
+                // Add dep->coord in simulated to catch cycles across multiple newDeps
+                simulated.computeIfAbsent(dep, k -> new HashSet<>()).add(coord);
+            }
+        }
+
+        // Everything OK -> now apply the real changes, not in simulation
+        // remove old incoming edges of coord from actual graph
+        removeDependenciesOf(coord);
+
         spreadsheet.put(coord, new Cell(coord, content));
 
-        updateDependencies(coord, content);
+        // add new edges in real graph
+        addDependencies(coord, content);
+
+        // invalidate dependents
         invalidate(coord);
+    }
+
+    private Map<Coordinate, Set<Coordinate>> copyDependents() {
+        Map<Coordinate, Set<Coordinate>> copy = new HashMap<>();
+        for (Map.Entry<Coordinate, Set<Coordinate>> e : dependents.entrySet()) {
+            copy.put(e.getKey(), new HashSet<>(e.getValue()));
+        }
+        return copy;
+    }
+
+    private void removeDependenciesOf(Coordinate coord) {
+        for (Set<Coordinate> deps : dependents.values()) {
+            deps.remove(coord);
+        }
     }
 
     private void invalidate(Coordinate coord) {
@@ -35,26 +78,22 @@ public class Spreadsheet {
     }
 
     private void invalidateRecursive(Coordinate coord, Set<Coordinate> visited) {
+        if (!visited.add(coord)) return;
+
         Set<Coordinate> deps = dependents.get(coord);
-        if (deps == null) return;
+        if (deps == null || deps.isEmpty()) return;
 
         for (Coordinate c : deps) {
             Cell cell = spreadsheet.get(c);
             if (cell != null && cell.getContent() instanceof FormulaContent) {
                 FormulaContent fc = (FormulaContent) cell.getContent();
-                fc.invalidate(); // mark isValid = false
+                fc.invalidate();
             }
-            invalidateRecursive(c, visited); // recursively invalidate
+            invalidateRecursive(c, visited);
         }
     }
 
-    public void updateDependencies(Coordinate coord, CellContent content) {
-        // 1) Remove coord from all existing dependent sets (clear previous registration)
-        for (Set<Coordinate> deps : dependents.values()) {
-            deps.remove(coord);
-        }
-
-        // 2) If the new content is a formula, register coord as dependent of each dependency
+    private void addDependencies(Coordinate coord, CellContent content) {
         if (content instanceof FormulaContent) {
             FormulaContent fc = (FormulaContent) content;
             for (Coordinate dep : fc.getDependencies()) {
@@ -62,13 +101,6 @@ public class Spreadsheet {
             }
         }
     }
-
-
-    public void deleteCell(String coordStr) {
-        Coordinate coord = Coordinate.fromString(coordStr);
-        spreadsheet.remove(coord);
-    }
-
 
     public Double getCellValue(String coordStr) {
         Coordinate coord = Coordinate.fromString(coordStr);
@@ -85,7 +117,6 @@ public class Spreadsheet {
         catch (NumberFormatException e) { return false; }
     }
 
-    // Helpers for column <-> index
     public static int toIndex(String col) {
         int result = 0;
         for (char ch : col.toCharArray()) {
@@ -103,4 +134,47 @@ public class Spreadsheet {
         }
         return sb.toString();
     }
+
+    public void rebuildDependencies() {
+        dependents.clear();
+
+        for (Map.Entry<Coordinate, Cell> entry : spreadsheet.entrySet()) {
+            Coordinate coord = entry.getKey();
+            CellContent content = entry.getValue().getContent();
+
+            if (content instanceof FormulaContent) {
+                FormulaContent fc = (FormulaContent) content;
+
+                for (Coordinate dep : fc.getDependencies()) {
+                    dependents.computeIfAbsent(dep, k -> new HashSet<>())
+                            .add(coord);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if there is a path from `start` to `target` in the provided dependents graph.
+     * Uses iterative DFS on the provided graph (so we can test prospective graphs safely).
+     */
+    private boolean pathExists(Map<Coordinate, Set<Coordinate>> graph, Coordinate start, Coordinate target) {
+        if (start.equals(target)) return true;
+        Set<Coordinate> visited = new HashSet<>();
+        Deque<Coordinate> stack = new ArrayDeque<>();
+        stack.push(start);
+
+        while (!stack.isEmpty()) {
+            Coordinate curr = stack.pop();
+            if (!visited.add(curr)) continue;
+
+            Set<Coordinate> nexts = graph.get(curr);
+            if (nexts == null) continue;
+            for (Coordinate nxt : nexts) {
+                if (nxt.equals(target)) return true;
+                if (!visited.contains(nxt)) stack.push(nxt);
+            }
+        }
+        return false;
+    }
+
 }

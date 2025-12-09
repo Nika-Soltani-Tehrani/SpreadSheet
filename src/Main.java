@@ -29,8 +29,7 @@ public class Main {
         */
 
         /*
-        Test Dependency management
-         */
+        //Test Dependency management
         //sheet.setCellContent("A1", "=B1 + B2+B3");
         //System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
         sheet.setCellContent("B1", "1");
@@ -41,9 +40,20 @@ public class Main {
         System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
 
         sheet.setCellContent("C1", "=A1 + 1");
-        sheet.setCellContent("B2", "4");
+        sheet.setCellContent("B2", "5");
         sheet.setCellContent("C2", "=A1");
         System.out.println("The value of C2 before assignment is: " + sheet.getCellValue("C2"));
+        */
+        /*
+        // Test cyclic detection mechanism
+        sheet.setCellContent("B1", "1");
+        sheet.setCellContent("C1", "5");
+        System.out.println("before adding A1");
+        sheet.setCellContent("A1", "=B1 + 1");
+        System.out.println("before adding B1");
+        sheet.setCellContent("B1", "=C1 + 1");
+        sheet.setCellContent("C1", "=A1 + 1"); // Now a cycle
+        */
         // Save
         storage.save("spreadsheet.s2v", sheet);
 

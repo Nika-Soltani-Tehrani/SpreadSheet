@@ -98,7 +98,7 @@ public class SpreadsheetStorage {
         } catch (IOException e) {
             System.err.println("Error loading spreadsheet: " + e.getMessage());
         }
-
+        sheet.rebuildDependencies();
         return sheet;
     }
 }
