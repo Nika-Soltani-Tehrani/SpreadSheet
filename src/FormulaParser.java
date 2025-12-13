@@ -55,8 +55,13 @@ public class FormulaParser {
         return left;
     }
 
-    // factor = number | cellReference | (expression)
+    /**
+     * factor = number | cellRef | range | (expression)
+     * range = cellRef ':' cellRef
+     */
     private Expression parseFactor() {
+
+        // Parentheses
         if (expr.charAt(pos) == '(') {
             pos++;
             Expression inside = parseExpression();
@@ -64,18 +69,46 @@ public class FormulaParser {
             return inside;
         }
 
-        // number or cell reference
         int start = pos;
         while (pos < expr.length() &&
                 (Character.isLetterOrDigit(expr.charAt(pos)))) {
             pos++;
         }
-        String token = expr.substring(start, pos);
+        String firstToken = expr.substring(start, pos);
 
-        if (token.matches("[A-Z]+[0-9]+")) {
-            return new CellReference(token);
-        } else {
-            return new ConstantNumber(Double.parseDouble(token));
+        // Number?
+        if (firstToken.matches("[0-9]+(\\.[0-9]+)?")) {
+            return new ConstantNumber(Double.parseDouble(firstToken));
         }
+
+        // Must be at least a cell reference like A1
+        if (!firstToken.matches("[A-Z]+[0-9]+")) {
+            throw new IllegalArgumentException("Invalid token in formula: " + firstToken);
+        }
+
+        // ------- CHECK IF THIS IS A RANGE "A1:B5" -------
+        if (pos < expr.length() && expr.charAt(pos) == ':') {
+            pos++; // skip ':'
+
+            // parse second coordinate
+            int start2 = pos;
+            while (pos < expr.length() &&
+                    (Character.isLetterOrDigit(expr.charAt(pos)))) {
+                pos++;
+            }
+            String secondToken = expr.substring(start2, pos);
+
+            if (!secondToken.matches("[A-Z]+[0-9]+")) {
+                throw new IllegalArgumentException("Invalid range end: " + secondToken);
+            }
+
+            Coordinate c1 = Coordinate.fromString(firstToken);
+            Coordinate c2 = Coordinate.fromString(secondToken);
+
+            return new RangeReference(c1, c2);
+        }
+
+        // ------- NORMAL CELL REFERENCE -------
+        return new CellReference(firstToken);
     }
 }
