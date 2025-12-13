@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class FormulaParser {
 
     private String expr;
@@ -20,6 +23,10 @@ public class FormulaParser {
         Expression left = parseTerm();
         while (pos < expr.length()) {
             char op = expr.charAt(pos);
+            // STOP if end of argument or function
+            if (op == ',' || op == ')') {
+                break;
+            }
             if (op == '+' || op == '-') {
                 pos++;
                 Expression right = parseTerm();
@@ -40,6 +47,9 @@ public class FormulaParser {
         Expression left = parseFactor();
         while (pos < expr.length()) {
             char op = expr.charAt(pos);
+            if (op == ',' || op == ')') {
+                break;
+            }
             if (op == '*' || op == '/') {
                 pos++;
                 Expression right = parseFactor();
@@ -53,6 +63,33 @@ public class FormulaParser {
             }
         }
         return left;
+    }
+
+    private Expression parseFunctionCall(String name) {
+        pos++; // skip '('
+
+        // Convert the name into function type
+        FunctionCall.FuncType functionType;
+        try {
+            functionType = FunctionCall.FuncType.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown function: " + name);
+        }
+
+        List<Expression> arguments = new ArrayList<>();
+
+        // parse arguments until ')'
+        while (pos < expr.length() && expr.charAt(pos) != ')') {
+            Expression arg = parseExpression();
+            arguments.add(arg);
+
+            if (expr.charAt(pos) == ',') {
+                pos++; // skip comma
+            }
+        }
+        pos++; // skip ')'
+
+        return new FunctionCall(functionType, arguments);
     }
 
     /**
@@ -81,26 +118,24 @@ public class FormulaParser {
             return new ConstantNumber(Double.parseDouble(firstToken));
         }
 
-        // Must be at least a cell reference like A1
+        // FUNCTION CALL? Example: SUMA(
+        if (firstToken.matches("[A-Z]+") && pos < expr.length() && expr.charAt(pos) == '(') {
+            return parseFunctionCall(firstToken);
+        }
+
+        // Not a function — must be at least A1 format
         if (!firstToken.matches("[A-Z]+[0-9]+")) {
             throw new IllegalArgumentException("Invalid token in formula: " + firstToken);
         }
 
-        // ------- CHECK IF THIS IS A RANGE "A1:B5" -------
+        // Range A1:B5 ?
         if (pos < expr.length() && expr.charAt(pos) == ':') {
             pos++; // skip ':'
 
             // parse second coordinate
             int start2 = pos;
-            while (pos < expr.length() &&
-                    (Character.isLetterOrDigit(expr.charAt(pos)))) {
-                pos++;
-            }
+            while (pos < expr.length() && Character.isLetterOrDigit(expr.charAt(pos))) pos++;
             String secondToken = expr.substring(start2, pos);
-
-            if (!secondToken.matches("[A-Z]+[0-9]+")) {
-                throw new IllegalArgumentException("Invalid range end: " + secondToken);
-            }
 
             Coordinate c1 = Coordinate.fromString(firstToken);
             Coordinate c2 = Coordinate.fromString(secondToken);
@@ -108,7 +143,7 @@ public class FormulaParser {
             return new RangeReference(c1, c2);
         }
 
-        // ------- NORMAL CELL REFERENCE -------
+        // Regular cell reference
         return new CellReference(firstToken);
     }
 }

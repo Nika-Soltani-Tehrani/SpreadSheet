@@ -32,7 +32,7 @@ public class SpreadsheetStorage {
 
                         if (cell != null) {
                             String content = cell.getContent().asString();
-                            content = content.replace(";", ",");  // required by S2V spec
+                            content = content.replace(";", "\\");  // required by S2V spec
                             line.append(content);
                         }
 
@@ -73,7 +73,7 @@ public class SpreadsheetStorage {
                 int currentCol = 1;
 
                 for (String raw : cellContents) {
-                    raw = raw.replace(",", ";").trim();
+                    raw = raw.replace("\\", ";").trim();
 
                     if (!raw.isEmpty()) {
                         String colName = Spreadsheet.fromIndex(currentCol);
