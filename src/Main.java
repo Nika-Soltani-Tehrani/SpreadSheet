@@ -55,9 +55,22 @@ public class Main {
         sheet.setCellContent("C1", "=A1 + 1"); // Now a cycle
         */
         // Test ranges
+        /*
         sheet.setCellContent("D2", "=B1:B3");
         System.out.println("The value of D2 is: " + sheet.getCellValue("D2"));
+        */
+
+        // Test
+        sheet.setCellContent("D1", "=SUMA(B1:B3, 3, C1)");
+        System.out.println("The value of D1 assignment is: " + sheet.getCellValue("D1"));
+        sheet.setCellContent("D2", "=MIN(1, 2, 3)");
+        System.out.println("The value of D2 assignment is: " + sheet.getCellValue("D2"));
+        sheet.setCellContent("D3", "=AVERAGE(A1, (B1 + C1) * 2)");
+        System.out.println("The value of D3 assignment is: " + sheet.getCellValue("D3"));
+        sheet.setCellContent("D4", "=MAX(A1, MAX(B1, C1))");
+        System.out.println("The value of D4 assignment is: " + sheet.getCellValue("D4"));
         // Save
+
         storage.save("spreadsheet.s2v", sheet);
 
         System.out.println("\n=== After Modification ===");
