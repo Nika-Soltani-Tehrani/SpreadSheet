@@ -1,79 +1,137 @@
 import java.util.Map;
+import java.util.Scanner;
 
 public class Main {
 
+    private static final String DEFAULT_PATH = "spreadsheet.s2v";
+
     public static void printSpreadsheet(Spreadsheet sheet) {
-        for (Map.Entry<Coordinate, Cell> entry : sheet.getSpreadsheet().entrySet()) {
-            System.out.println(entry.getKey() + " → " + entry.getValue().getContent().asString());
+        Map<Coordinate, Cell> data = sheet.getSpreadsheet();
+
+        if (data.isEmpty()) {
+            System.out.println("(Spreadsheet is empty)");
+            return;
         }
+
+        // 1) Determine bounds
+        int maxRow = 0;
+        int maxCol = 0;
+
+        for (Coordinate c : data.keySet()) {
+            maxRow = Math.max(maxRow, c.getRow());
+            maxCol = Math.max(maxCol, Spreadsheet.toIndex(c.getColumn()));
+        }
+
+        // 2) Print column headers
+        System.out.print("    "); // row label space
+        for (int col = 1; col <= maxCol; col++) {
+            System.out.printf("%-10s", Spreadsheet.fromIndex(col));
+        }
+        System.out.println();
+
+        // 3) Print each row
+        for (int row = 1; row <= maxRow; row++) {
+            System.out.printf("%-4d", row);
+
+            for (int col = 1; col <= maxCol; col++) {
+                Coordinate coord = new Coordinate(Spreadsheet.fromIndex(col), row);
+                Cell cell = data.get(coord);
+
+                String content = "";
+                if (cell != null) {
+                    content = cell.getContent().asString();
+                }
+
+                System.out.printf("%-10s", content);
+            }
+            System.out.println();
+        }
+    }
+
+    public static void printMenu() {
+        System.out.println("\n===== Spreadsheet Menu =====");
+        System.out.println("1. Load spreadsheet");
+        System.out.println("2. Save spreadsheet");
+        System.out.println("3. Set cell content");
+        System.out.println("4. Get cell value");
+        System.out.println("5. Get cell content");
+        System.out.println("6. Print spreadsheet");
+        System.out.println("7. Delete cell");
+        System.out.println("0. Exit");
+        System.out.print("Choose an option: ");
     }
 
     public static void main(String[] args) {
 
+        Scanner scanner = new Scanner(System.in);
         SpreadsheetStorage storage = new SpreadsheetStorage();
+        Spreadsheet sheet = new Spreadsheet();
 
-        // Load
-        Spreadsheet sheet = storage.load("spreadsheet.s2v");
-        System.out.println("\n=== Loaded Spreadsheet ===");
-        printSpreadsheet(sheet);
-        /*
-        // Modify
-        sheet.setCellContent("C1", "1");
-        sheet.setCellContent("A2", "2");
-        sheet.setCellContent("A1", "=C1+B1*A2");
-        sheet.setCellContent("B1", "3");
-        sheet.setCellContent("C2", "5");
-        sheet.setCellContent("C2", "=A1");
-        System.out.println(sheet.getCellValue("A1"));
-        System.out.println(sheet.getCellValue("C2"));
-        */
+        boolean running = true;
 
-        /*
-        //Test Dependency management
-        //sheet.setCellContent("A1", "=B1 + B2+B3");
-        //System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
-        sheet.setCellContent("B1", "1");
-        sheet.setCellContent("B2", "3");
-        sheet.setCellContent("B3", "5");
+        while (running) {
+            printMenu();
+            String choice = scanner.nextLine().trim();
 
-        sheet.setCellContent("A1", "=B1 + B2+B3");
-        System.out.println("The value of A1 before assignment is: " + sheet.getCellValue("A1"));
+            try {
+                switch (choice) {
 
-        sheet.setCellContent("C1", "=A1 + 1");
-        sheet.setCellContent("B2", "5");
-        sheet.setCellContent("C2", "=A1");
-        System.out.println("The value of C2 before assignment is: " + sheet.getCellValue("C2"));
-        */
-        /*
-        // Test cyclic detection mechanism
-        sheet.setCellContent("B1", "1");
-        sheet.setCellContent("C1", "5");
-        System.out.println("before adding A1");
-        sheet.setCellContent("A1", "=B1 + 1");
-        System.out.println("before adding B1");
-        sheet.setCellContent("B1", "=C1 + 1");
-        sheet.setCellContent("C1", "=A1 + 1"); // Now a cycle
-        */
-        // Test ranges
-        /*
-        sheet.setCellContent("D2", "=B1:B3");
-        System.out.println("The value of D2 is: " + sheet.getCellValue("D2"));
-        */
+                    case "1": // Load
+                        sheet = storage.load(DEFAULT_PATH);
+                        System.out.println("Spreadsheet loaded.");
+                        break;
 
-        // Test
-        sheet.setCellContent("D1", "=SUMA(B1:B3, 3, C1)");
-        System.out.println("The value of D1 assignment is: " + sheet.getCellValue("D1"));
-        sheet.setCellContent("D2", "=MIN(1, 2, 3)");
-        System.out.println("The value of D2 assignment is: " + sheet.getCellValue("D2"));
-        sheet.setCellContent("D3", "=AVERAGE(A1, (B1 + C1) * 2)");
-        System.out.println("The value of D3 assignment is: " + sheet.getCellValue("D3"));
-        sheet.setCellContent("D4", "=MAX(A1, MAX(B1, C1))");
-        System.out.println("The value of D4 assignment is: " + sheet.getCellValue("D4"));
-        // Save
+                    case "2": // Save
+                        storage.save(DEFAULT_PATH, sheet);
+                        System.out.println("Spreadsheet saved.");
+                        break;
 
-        storage.save("spreadsheet.s2v", sheet);
+                    case "3": // Set cell content
+                        System.out.print("Enter cell (e.g. A1): ");
+                        String coord = scanner.nextLine().trim();
+                        System.out.print("Enter content (number, text, or formula): ");
+                        String content = scanner.nextLine();
+                        sheet.setCellContent(coord, content);
+                        System.out.println("Cell updated.");
+                        break;
 
-        System.out.println("\n=== After Modification ===");
-        printSpreadsheet(sheet);
+                    case "4": // Get cell value
+                        System.out.print("Enter cell: ");
+                        coord = scanner.nextLine().trim();
+                        Double value = sheet.getCellValue(coord);
+                        System.out.println("Value of " + coord + " = " + value);
+                        break;
+
+                    case "5": // Get cell content
+                        System.out.print("Enter cell: ");
+                        coord = scanner.nextLine().trim();
+                        Cell cell = sheet.getSpreadsheet().get(Coordinate.fromString(coord));
+                        if (cell == null) {
+                            System.out.println("Cell is empty.");
+                        } else {
+                            System.out.println("Content of " + coord + " = " +
+                                    cell.getContent().asString());
+                        }
+                        break;
+
+                    case "6": // Print spreadsheet
+                        printSpreadsheet(sheet);
+                        break;
+
+                    case "0": // Exit
+                        running = false;
+                        System.out.println("Exiting program.");
+                        break;
+
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                }
+
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+
+        scanner.close();
     }
 }
