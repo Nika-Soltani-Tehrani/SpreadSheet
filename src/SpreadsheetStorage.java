@@ -3,7 +3,7 @@ import java.util.Map;
 
 public class SpreadsheetStorage {
 
-    public void save(String path, Spreadsheet sheet) {
+    public void save(String path, Spreadsheet sheet) throws IOException {
         Map<Coordinate, Cell> data = sheet.getSpreadsheet();
 
         int maxRow = 0;
@@ -16,52 +16,40 @@ public class SpreadsheetStorage {
 
         File file = new File(path);
 
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-            }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (int r = 1; r <= maxRow; r++) {
+                StringBuilder line = new StringBuilder();
 
-                for (int r = 1; r <= maxRow; r++) {
-                    StringBuilder line = new StringBuilder();
+                for (int c = 1; c <= maxCol; c++) {
+                    Coordinate coord = new Coordinate(Spreadsheet.fromIndex(c), r);
+                    Cell cell = data.get(coord);
 
-                    for (int c = 1; c <= maxCol; c++) {
-                        Coordinate coord = new Coordinate(Spreadsheet.fromIndex(c), r);
-                        Cell cell = data.get(coord);
-
-                        if (cell != null) {
-                            String content = cell.getContent().asString();
-                            content = content.replace(";", "\\");  // required by S2V spec
-                            line.append(content);
-                        }
-
-                        if (c < maxCol) {
-                            line.append(';');
-                        }
+                    if (cell != null) {
+                        String content = cell.getContent().asString();
+                        content = content.replace(";", "\\"); // required by S2V spec
+                        line.append(content);
                     }
 
-                    writer.write(line.toString());
-                    writer.newLine();
+                    if (c < maxCol) {
+                        line.append(';');
+                    }
                 }
 
-                System.out.println("Spreadsheet stored successfully in: " + path);
-
+                writer.write(line.toString());
+                writer.newLine();
             }
-
-        } catch (IOException e) {
-            System.err.println("Error storing spreadsheet: " + e.getMessage());
         }
     }
 
-    public Spreadsheet load(String path) {
-        Spreadsheet sheet = new Spreadsheet();
+    public Spreadsheet load(String path) throws IOException {
         File file = new File(path);
 
         if (!file.exists()) {
-            System.err.println("Error: file not found at " + path);
-            return sheet;
+            throw new FileNotFoundException("Spreadsheet file not found: " + path);
         }
+
+        Spreadsheet sheet = new Spreadsheet();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
@@ -87,17 +75,12 @@ public class SpreadsheetStorage {
                             sheet.getSpreadsheet().put(coord, new Cell(coord, new TextContent(raw)));
                         }
                     }
-
                     currentCol++;
                 }
                 currentRow++;
             }
-
-            System.out.println("Spreadsheet loaded successfully from: " + path);
-
-        } catch (IOException e) {
-            System.err.println("Error loading spreadsheet: " + e.getMessage());
         }
+
         sheet.rebuildDependencies();
         return sheet;
     }

@@ -36,8 +36,6 @@ public class Spreadsheet {
             for (Coordinate dep : newDeps) {
                 // If coord can already reach dep in simulated graph, adding dep->coord closes a cycle
                 boolean creates = pathExists(simulated, coord, dep);
-
-                System.out.println("checking cycle for " + coord + " depending on " + dep + " => " + creates);
                 if (creates) {
                     throw new IllegalStateException("Cyclic dependency detected: " + coord + " <-> " + dep);
                 }

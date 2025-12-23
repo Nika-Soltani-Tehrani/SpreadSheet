@@ -1,3 +1,5 @@
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -77,15 +79,24 @@ public class Main {
                 switch (choice) {
 
                     case "1": // Load
-                        sheet = storage.load(DEFAULT_PATH);
-                        System.out.println("Spreadsheet loaded.");
+                        try {
+                            sheet = storage.load(DEFAULT_PATH);
+                            System.out.println("Spreadsheet loaded successfully.");
+                        } catch (FileNotFoundException e) {
+                            System.out.println("File not found: " + e.getMessage());
+                        } catch (IOException e) {
+                            System.out.println("Error loading spreadsheet: " + e.getMessage());
+                        }
                         break;
 
                     case "2": // Save
-                        storage.save(DEFAULT_PATH, sheet);
-                        System.out.println("Spreadsheet saved.");
+                        try {
+                            storage.save(DEFAULT_PATH, sheet);
+                            System.out.println("Spreadsheet saved successfully.");
+                        } catch (IOException e) {
+                            System.out.println("Error saving spreadsheet: " + e.getMessage());
+                        }
                         break;
-
                     case "3": // Set cell content
                         System.out.print("Enter cell (e.g. A1): ");
                         String coord = scanner.nextLine().trim();
